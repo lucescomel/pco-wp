@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+    webserver:
+        container_name: 'server-${PROJECT}'
+        image: wordpress:latest
+        ports:
+            - 80:80
+        volumes:
+            - ../web/:/var/www/html:cached
+        env_file:
+            - .env
+        links:
+            - db
+
+    db:
+        container_name: 'database-${PROJECT}'
+        image: mariadb:latest
+        ports:
+            - '3306:3306'
+        volumes:
+            - wp-pco:/var/lib/mysql
+        environment:
+            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+            - MYSQL_DATABASE=${MYSQL_DB}
+            - MYSQL_USER=${MYSQL_USER}
+            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+        command: --innodb-use-native-aio=0
+
+    phpmyadmin:
+        container_name: 'phpmyadmin-${PROJECT}'
+        image: phpmyadmin/phpmyadmin
+        links:
+            - db
+        ports:
+            - 8000:80
+        environment:
+            - PMA_ARBITRARY=1
+            - PMA_HOST=db
+            - PMA_USER=${MYSQL_USER}
+            - PMA_PASSWORD=${MYSQL_PASSWORD}
+            - UPLOAD_LIMIT=128M
+
+volumes:
+    wp-pco:
